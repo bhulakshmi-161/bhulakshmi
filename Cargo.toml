@@ -1,0 +1,17 @@
+[package]
+name = "staking_contract"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+solana-program = "1.9.5"
+spl-token = "3.2.0"
+
+[features]
+default = []
+use_custom_allocator = []
+
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
