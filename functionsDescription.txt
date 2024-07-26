@@ -1,0 +1,38 @@
+Description about the functions
+
+1. process_instruction Function
+
+Purpose: The entry point of the contract. It processes the incoming instructions based on the StakingInstruction
+
+Functionality:
+Unpacks the instruction using StakingInstruction::unpack.
+Routes to the corresponding processing function based on the unpacked instruction.
+
+2. process_initialize Function
+
+Purpose: Initializes the staking account with the provided staking_vault pubkey.
+
+Functionality:
+Checks if the staking_account is rent-exempt using the Rent sysvar.
+Updates the staking_account with the provided staking_vault pubkey.
+
+3. process_stake Function
+
+Purpose: Handles the staking process where the user stakes a specified amount of tokens for a given duration.
+
+Functionality:
+Retrieves account information from the accounts slice.
+Determines the reward rate based on the staking duration.
+Updates the user_staking account with the staking details.
+Constructs and executes a transfer instruction to move tokens from the user's token account to the staking vault.
+
+4. process_withdraw Function
+
+Purpose: Handles the withdrawal process, allowing a user to withdraw their staked tokens along with any rewards.
+
+Functionality:
+Retrieves account information from the accounts slice.
+Checks if the current time is past the staking end time.
+Calculates the total amount (initial stake + rewards).
+Constructs and executes a transfer instruction to move tokens from the staking vault to the user’s token account.
+Updates the user_staking account to reflect that the stake has been withdrawn.
