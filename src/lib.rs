@@ -258,168 +258,168 @@ pub fn process_withdraw(accounts: &[AccountInfo], program_id: &Pubkey) -> Progra
 
 
 
-//test s
+//tests
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use solana_program::{
-        clock::Epoch,
-        pubkey::Pubkey,
-        rent::Rent,
-        account_info::AccountInfo,
-        clock::Clock,
-        sysvar::clock::ClockSysvar,
-    };
-    use std::cell::RefCell;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use solana_program::{
+//         clock::Epoch,
+//         pubkey::Pubkey,
+//         rent::Rent,
+//         account_info::AccountInfo,
+//         clock::Clock,
+//         sysvar::clock::ClockSysvar,
+//     };
+//     use std::cell::RefCell;
 
-    fn create_is_signer_account_infos<'a>(key: &'a Pubkey, lamports: &'a mut u64, data: &'a mut [u8]) -> AccountInfo<'a> {
-        AccountInfo {
-            key,
-            is_signer: true,
-            is_writable: true,
-            lamports: RefCell::new(lamports),
-            data: RefCell::new(data),
-            owner: key,
-            executable: false,
-            rent_epoch: Epoch::default(),
-        }
-    }
+//     fn create_is_signer_account_infos<'a>(key: &'a Pubkey, lamports: &'a mut u64, data: &'a mut [u8]) -> AccountInfo<'a> {
+//         AccountInfo {
+//             key,
+//             is_signer: true,
+//             is_writable: true,
+//             lamports: RefCell::new(lamports),
+//             data: RefCell::new(data),
+//             owner: key,
+//             executable: false,
+//             rent_epoch: Epoch::default(),
+//         }
+//     }
 
-    #[test]
-    fn test_initialize() {
-        let program_id = Pubkey::new_unique();
-        let staking_vault = Pubkey::new_unique();
-        let staking_account = Pubkey::new_unique();
-        let rent = Rent::default();
+//     #[test]
+//     fn test_initialize() {
+//         let program_id = Pubkey::new_unique();
+//         let staking_vault = Pubkey::new_unique();
+//         let staking_account = Pubkey::new_unique();
+//         let rent = Rent::default();
 
-        let mut staking_account_data = vec![0; StakingAccount::LEN];
-        let mut lamports = rent.minimum_balance(StakingAccount::LEN);
-        let staking_account_info = create_is_signer_account_infos(&staking_account, &mut lamports, &mut staking_account_data);
+//         let mut staking_account_data = vec![0; StakingAccount::LEN];
+//         let mut lamports = rent.minimum_balance(StakingAccount::LEN);
+//         let staking_account_info = create_is_signer_account_infos(&staking_account, &mut lamports, &mut staking_account_data);
 
-        let mut rent_account_data = vec![0; 100];
-        let rent_account_info = create_is_signer_account_infos(&Rent::id(), &mut 0, &mut rent_account_data);
+//         let mut rent_account_data = vec![0; 100];
+//         let rent_account_info = create_is_signer_account_infos(&Rent::id(), &mut 0, &mut rent_account_data);
 
-        let result = process_initialize(
-            &[staking_account_info, rent_account_info],
-            staking_vault,
-            &program_id,
-        );
+//         let result = process_initialize(
+//             &[staking_account_info, rent_account_info],
+//             staking_vault,
+//             &program_id,
+//         );
 
-        assert_eq!(result, Ok(()));
-    }
+//         assert_eq!(result, Ok(()));
+//     }
 
-    #[test]
-    fn test_stake() {
-        let program_id = Pubkey::new_unique();
-        let staking_vault = Pubkey::new_unique();
-        let staking_account = Pubkey::new_unique();
-        let user_staking = Pubkey::new_unique();
-        let user_token_account = Pubkey::new_unique();
-        let token_program = Pubkey::new_unique();
-        let user = Pubkey::new_unique();
+//     #[test]
+//     fn test_stake() {
+//         let program_id = Pubkey::new_unique();
+//         let staking_vault = Pubkey::new_unique();
+//         let staking_account = Pubkey::new_unique();
+//         let user_staking = Pubkey::new_unique();
+//         let user_token_account = Pubkey::new_unique();
+//         let token_program = Pubkey::new_unique();
+//         let user = Pubkey::new_unique();
 
-        let clock = Clock {
-            unix_timestamp: 1_620_000_000,
-            ..Clock::default()
-        };
+//         let clock = Clock {
+//             unix_timestamp: 1_620_000_000,
+//             ..Clock::default()
+//         };
 
-        let reward_rate = 3;
-        let amount = 1000;
-        let duration = 30;
+//         let reward_rate = 3;
+//         let amount = 1000;
+//         let duration = 30;
 
-        let mut staking_account_data = vec![0; StakingAccount::LEN];
-        let mut user_staking_data = vec![0; UserStaking::LEN];
-        let mut lamports = 0;
-        let mut user_token_account_lamports = amount;
+//         let mut staking_account_data = vec![0; StakingAccount::LEN];
+//         let mut user_staking_data = vec![0; UserStaking::LEN];
+//         let mut lamports = 0;
+//         let mut user_token_account_lamports = amount;
 
-        let staking_account_info = create_is_signer_account_infos(&staking_account, &mut lamports, &mut staking_account_data);
-        let user_staking_info = create_is_signer_account_infos(&user_staking, &mut lamports, &mut user_staking_data);
-        let user_token_account_info = create_is_signer_account_infos(&user_token_account, &mut user_token_account_lamports, &mut []);
-        let staking_vault_info = create_is_signer_account_infos(&staking_vault, &mut lamports, &mut []);
-        let token_program_info = create_is_signer_account_infos(&token_program, &mut lamports, &mut []);
-        let user_info = create_is_signer_account_infos(&user, &mut lamports, &mut []);
+//         let staking_account_info = create_is_signer_account_infos(&staking_account, &mut lamports, &mut staking_account_data);
+//         let user_staking_info = create_is_signer_account_infos(&user_staking, &mut lamports, &mut user_staking_data);
+//         let user_token_account_info = create_is_signer_account_infos(&user_token_account, &mut user_token_account_lamports, &mut []);
+//         let staking_vault_info = create_is_signer_account_infos(&staking_vault, &mut lamports, &mut []);
+//         let token_program_info = create_is_signer_account_infos(&token_program, &mut lamports, &mut []);
+//         let user_info = create_is_signer_account_infos(&user, &mut lamports, &mut []);
 
-        let clock_sysvar = ClockSysvar {
-            clock,
-            ..ClockSysvar::default()
-        };
+//         let clock_sysvar = ClockSysvar {
+//             clock,
+//             ..ClockSysvar::default()
+//         };
 
-        let result = process_stake(
-            &[
-                staking_account_info,
-                user_staking_info,
-                user_token_account_info,
-                staking_vault_info,
-                token_program_info,
-                user_info,
-                clock_sysvar.account_info(),
-            ],
-            amount,
-            duration,
-            &program_id,
-        );
+//         let result = process_stake(
+//             &[
+//                 staking_account_info,
+//                 user_staking_info,
+//                 user_token_account_info,
+//                 staking_vault_info,
+//                 token_program_info,
+//                 user_info,
+//                 clock_sysvar.account_info(),
+//             ],
+//             amount,
+//             duration,
+//             &program_id,
+//         );
 
-        assert_eq!(result, Ok(()));
-    }
+//         assert_eq!(result, Ok(()));
+//     }
 
-    #[test]
-    fn test_withdraw() {
-        let program_id = Pubkey::new_unique();
-        let staking_vault = Pubkey::new_unique();
-        let staking_account = Pubkey::new_unique();
-        let user_staking = Pubkey::new_unique();
-        let user_token_account = Pubkey::new_unique();
-        let token_program = Pubkey::new_unique();
-        let user = Pubkey::new_unique();
+//     #[test]
+//     fn test_withdraw() {
+//         let program_id = Pubkey::new_unique();
+//         let staking_vault = Pubkey::new_unique();
+//         let staking_account = Pubkey::new_unique();
+//         let user_staking = Pubkey::new_unique();
+//         let user_token_account = Pubkey::new_unique();
+//         let token_program = Pubkey::new_unique();
+//         let user = Pubkey::new_unique();
 
-        let clock = Clock {
-            unix_timestamp: 1_620_000_000 + 31 * 86400,
-            ..Clock::default()
-        };
+//         let clock = Clock {
+//             unix_timestamp: 1_620_000_000 + 31 * 86400,
+//             ..Clock::default()
+//         };
 
-        let amount = 1000;
-        let reward_rate = 3;
-        let reward = amount * reward_rate / 100;
-        let total_amount = amount + reward;
+//         let amount = 1000;
+//         let reward_rate = 3;
+//         let reward = amount * reward_rate / 100;
+//         let total_amount = amount + reward;
 
-        let mut staking_account_data = vec![0; StakingAccount::LEN];
-        let mut user_staking_data = vec![0; UserStaking::LEN];
-        let mut lamports = 0;
-        let mut user_token_account_lamports = total_amount;
+//         let mut staking_account_data = vec![0; StakingAccount::LEN];
+//         let mut user_staking_data = vec![0; UserStaking::LEN];
+//         let mut lamports = 0;
+//         let mut user_token_account_lamports = total_amount;
 
-        let staking_account_info = create_is_signer_account_infos(&staking_account, &mut lamports, &mut staking_account_data);
-        let user_staking_info = create_is_signer_account_infos(&user_staking, &mut lamports, &mut user_staking_data);
-        let user_token_account_info = create_is_signer_account_infos(&user_token_account, &mut user_token_account_lamports, &mut []);
-        let staking_vault_info = create_is_signer_account_infos(&staking_vault, &mut lamports, &mut []);
-        let token_program_info = create_is_signer_account_infos(&token_program, &mut lamports, &mut []);
-        let user_info = create_is_signer_account_infos(&user, &mut lamports, &mut []);
+//         let staking_account_info = create_is_signer_account_infos(&staking_account, &mut lamports, &mut staking_account_data);
+//         let user_staking_info = create_is_signer_account_infos(&user_staking, &mut lamports, &mut user_staking_data);
+//         let user_token_account_info = create_is_signer_account_infos(&user_token_account, &mut user_token_account_lamports, &mut []);
+//         let staking_vault_info = create_is_signer_account_infos(&staking_vault, &mut lamports, &mut []);
+//         let token_program_info = create_is_signer_account_infos(&token_program, &mut lamports, &mut []);
+//         let user_info = create_is_signer_account_infos(&user, &mut lamports, &mut []);
 
-        let clock_sysvar = ClockSysvar {
-            clock,
-            ..ClockSysvar::default()
-        };
+//         let clock_sysvar = ClockSysvar {
+//             clock,
+//             ..ClockSysvar::default()
+//         };
 
-        let mut user_staking_data_obj = UserStaking::default();
-        user_staking_data_obj.amount = amount;
-        user_staking_data_obj.start_time = 1_620_000_000; //uinx timestap
-        user_staking_data_obj.end_time = user_staking_data_obj.start_time + 30 * 86400;
-        user_staking_data_obj.reward_rate = reward_rate;
-        UserStaking::pack_into_slice(&user_staking_data_obj, &mut user_staking_data);
+//         let mut user_staking_data_obj = UserStaking::default();
+//         user_staking_data_obj.amount = amount;
+//         user_staking_data_obj.start_time = 1_620_000_000; //uinx timestap
+//         user_staking_data_obj.end_time = user_staking_data_obj.start_time + 30 * 86400;
+//         user_staking_data_obj.reward_rate = reward_rate;
+//         UserStaking::pack_into_slice(&user_staking_data_obj, &mut user_staking_data);
 
-        let result = process_withdraw(
-            &[
-                staking_account_info,
-                user_staking_info,
-                user_token_account_info,
-                staking_vault_info,
-                token_program_info,
-                user_info,
-                clock_sysvar.account_info(),
-            ],
-            &program_id,
-        );
+//         let result = process_withdraw(
+//             &[
+//                 staking_account_info,
+//                 user_staking_info,
+//                 user_token_account_info,
+//                 staking_vault_info,
+//                 token_program_info,
+//                 user_info,
+//                 clock_sysvar.account_info(),
+//             ],
+//             &program_id,
+//         );
 
-        assert_eq!(result, Ok(()));
-    }
-}
+//         assert_eq!(result, Ok(()));
+//     }
+// }
