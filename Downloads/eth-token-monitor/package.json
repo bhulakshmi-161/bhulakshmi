@@ -1,0 +1,11 @@
+{
+  "name": "eth-token-monitor",
+  "version": "1.0.0",
+  "main": "monitor.js",
+  "scripts": {
+    "start": "node monitor.js"
+  },
+  "dependencies": {
+    "ethers": "^6.8.1"
+  }
+}
