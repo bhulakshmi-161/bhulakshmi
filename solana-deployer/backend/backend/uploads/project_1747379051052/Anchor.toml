@@ -1,0 +1,10 @@
+
+[programs.devnet]
+project_1747379051052 = "replace-this"
+
+[provider]
+cluster = "devnet"
+wallet = "backend/uploads/auth-keypair.json"
+
+[scripts]
+    

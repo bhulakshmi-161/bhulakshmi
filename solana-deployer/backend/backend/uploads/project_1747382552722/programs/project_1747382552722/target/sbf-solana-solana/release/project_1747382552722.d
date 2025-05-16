@@ -1,0 +1,1 @@
+/home/bhulakshmi-ravuri/solana-deployer/backend/backend/uploads/project_1747382552722/programs/project_1747382552722/target/sbf-solana-solana/release/project_1747382552722.so: /home/bhulakshmi-ravuri/solana-deployer/backend/backend/uploads/project_1747382552722/programs/project_1747382552722/src/lib.rs
