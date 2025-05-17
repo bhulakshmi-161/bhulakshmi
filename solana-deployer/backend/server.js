@@ -4,6 +4,8 @@ import cors from 'cors';
 import { exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import  { glob} from 'glob';
+import solanaWeb3 from '@solana/web3.js';
 
 const app = express();
 const PORT = 3001;
@@ -14,156 +16,143 @@ fs.mkdirSync('./backend/uploads', { recursive: true });
 app.use(cors());
 app.use(express.json());
 
-// Log Content-Type header for debugging
+// Debug content-type middleware
 app.use((req, res, next) => {
   console.log('Content-Type:', req.headers['content-type']);
   next();
 });
 
-// Multer storage config
+// Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, './backend/uploads'),
   filename: (req, file, cb) => cb(null, file.originalname),
 });
 const upload = multer({ storage });
 
+// Upload test route
 app.post('/upload-test', upload.single('file'), (req, res) => {
   console.log('File received:', req.file);
   res.json({ fileReceived: !!req.file });
 });
 
-// Updated deploy endpoint
+// Deploy route
 app.post('/deploy', upload.fields([{ name: 'rustFile' }, { name: 'authKey' }]), async (req, res) => {
-    try {
-      console.log('--- Deploy API called ---');
-      console.log('FILES received:', req.files);
-      console.log('BODY received:', req.body);
-  
-      if (!req.files) {
-        console.log('No files uploaded');
-        return res.status(400).json({ error: 'No files were uploaded' });
-      }
-      if (!req.files['rustFile'] || req.files['rustFile'].length === 0) {
-        console.log('Rust file missing');
-        return res.status(400).json({ error: 'Rust file is missing' });
-      }
-      if (!req.files['authKey'] || req.files['authKey'].length === 0) {
-        console.log('Auth key file missing');
-        return res.status(400).json({ error: 'Auth key file is missing' });
-      }
-  
-      const rustFilePath = req.files['rustFile'][0].path;
-      const authKeyPath = req.files['authKey'][0].path;
-      const network = req.body.network || 'devnet';
-  
-      console.log('Rust file path:', rustFilePath);
-      console.log('Auth key file path:', authKeyPath);
-      console.log('Target network:', network);
-  
-      // Create a unique project folder
-      const projectName = `project_${Date.now()}`;
-      const projectPath = `./backend/uploads/${projectName}`;
-      console.log('Creating project directory at:', projectPath);
-      fs.mkdirSync(projectPath, { recursive: true });
-  
-      // Setup src folder for Rust program
-      const srcDir = `${projectPath}/programs/${projectName}/src`;
-      console.log('Creating src directory at:', srcDir);
-      fs.mkdirSync(srcDir, { recursive: true });
-  
-      // Copy Rust source file
-      const destRustFile = `${srcDir}/lib.rs`;
-      console.log(`Copying Rust file from ${rustFilePath} to ${destRustFile}`);
-      fs.copyFileSync(rustFilePath, destRustFile);
-  
-      // Copy auth key file to project root (where Anchor.toml expects wallet)
-      const destAuthKey = `${projectPath}/auth-keypair.json`;
-      console.log(`Copying auth key from ${authKeyPath} to ${destAuthKey}`);
-      fs.copyFileSync(authKeyPath, destAuthKey);
-  
-      // Confirm files exist after copying
-      console.log('Checking if files exist after copying...');
-      console.log('Rust file exists:', fs.existsSync(destRustFile));
-      console.log('Auth key file exists:', fs.existsSync(destAuthKey));
-  
-      // Write Cargo.toml
-      const cargoToml = `
-  [package]
-  name = "${projectName}"
-  version = "0.1.0"
-  edition = "2021"
-  
-  [lib]
-  crate-type = ["cdylib", "lib"]
-  
-  [dependencies]
-  anchor-lang = "0.29.0"
-      `;
-      const cargoTomlPath = `${projectPath}/programs/${projectName}/Cargo.toml`;
-      console.log('Writing Cargo.toml to:', cargoTomlPath);
-      fs.writeFileSync(cargoTomlPath, cargoToml);
-  
-      // Write Anchor.toml
-      const anchorToml = `
-  [programs.${network}]
-  ${projectName} = "11111111111111111111111111111111"
-  
-  [registry]
-  url = "https://api.${network}.solana.com"
-  
-  [provider]
-  cluster = "${network}"
-  wallet = "${path.resolve(destAuthKey)}"
-  
-  [scripts]
-      `;
-      const anchorTomlPath = `${projectPath}/Anchor.toml`;
-      console.log('Writing Anchor.toml to:', anchorTomlPath);
-      fs.writeFileSync(anchorTomlPath, anchorToml);
-  
-      // Execute build and deploy commands
-      const anchorBuildCmd = `/home/bhulakshmi-ravuri/.cargo/bin/anchor build`;
-      const anchorDeployCmd = `/home/bhulakshmi-ravuri/.cargo/bin/anchor deploy`;
-      const fullCmd = `cd ${projectPath} && ${anchorBuildCmd} && ${anchorDeployCmd}`;
-      console.log('Running build and deploy with command:', fullCmd);
-  
-      exec(fullCmd, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Deploy error stderr:', stderr);
-          return res.status(500).json({ error: stderr });
-        }
-        console.log('Deploy stdout:', stdout);
-  
-        const soFilePath = `${projectPath}/target/deploy/${projectName}.so`;
-        const idlPath = `${projectPath}/target/idl/${projectName}.json`;
-  
-        console.log('Checking if build artifacts exist...');
-        console.log('SO file exists:', fs.existsSync(soFilePath));
-        console.log('IDL file exists:', fs.existsSync(idlPath));
-  
-        if (!fs.existsSync(soFilePath) || !fs.existsSync(idlPath)) {
-          return res.status(500).json({ error: 'Build or IDL generation failed' });
-        }
-  
-        const programAddressMatch = stdout.match(/Program Id: (.+)/);
-        const programId = programAddressMatch ? programAddressMatch[1].trim() : 'Unknown';
-  
-        console.log('Program deployed with ID:', programId);
-  
-        res.json({
-          message: 'Program deployed!',
-          programId,
-          soFile: soFilePath,
-          idlFile: idlPath,
-        });
-      });
-    } catch (err) {
-      console.error('Server error:', err);
-      res.status(500).json({ error: 'Server error' });
+  try {
+    console.log('--- Deploy API called ---');
+    console.log('FILES received:', req.files);
+    console.log('BODY received:', req.body);
+
+    if (!req.files || !req.files['rustFile'] || !req.files['authKey']) {
+      return res.status(400).json({ error: 'Required files missing' });
     }
-  });
-  
-  
+
+    const rustFilePath = req.files['rustFile'][0].path;
+    const authKeyPath = req.files['authKey'][0].path;
+    const network = req.body.network || 'devnet';
+
+    const projectName = `project_${Date.now()}`;
+    const projectPath = `./backend/uploads/${projectName}`;
+    const srcDir = `${projectPath}/src`;
+
+    // Create project structure
+    fs.mkdirSync(srcDir, { recursive: true });
+    fs.copyFileSync(rustFilePath, `${srcDir}/lib.rs`);
+    fs.copyFileSync(authKeyPath, `${projectPath}/auth-keypair.json`);
+
+    // Write Cargo.toml
+    const cargoToml = `
+[package]
+name = "${projectName}"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+anchor-lang = "0.29.0"
+    `;
+    fs.writeFileSync(`${projectPath}/Cargo.toml`, cargoToml.trim());
+
+    // Write Anchor.toml
+    const anchorToml = `
+[programs.${network}]
+
+
+[registry]
+url = "https://api.${network}.solana.com"
+
+[provider]
+cluster = "${network}"
+wallet = "${path.resolve(projectPath, 'auth-keypair.json')}"
+
+[scripts]
+    `;
+    fs.writeFileSync(`${projectPath}/Anchor.toml`, anchorToml.trim());
+
+    // Build and deploy commands
+    const anchorBuildCmd = `/home/bhulakshmi-ravuri/.cargo/bin/anchor build`;
+    const anchorDeployCmd = `/home/bhulakshmi-ravuri/.cargo/bin/anchor deploy --provider.cluster ${network} --provider.wallet ${path.resolve(projectPath, 'auth-keypair.json')}`;
+
+    // Build
+    exec(`cd ${projectPath} && ${anchorBuildCmd}`, (buildErr, buildStdout, buildStderr) => {
+      if (buildErr) {
+        console.error('Build error:', buildStderr);
+        return res.status(500).json({ error: `Build failed: ${buildStderr}` });
+      }
+      console.log('Build succeeded:', buildStdout);
+
+      // Deploy
+      exec(`cd ${projectPath} && ${anchorDeployCmd}`, (deployErr, deployStdout, deployStderr) => {
+        if (deployErr) {
+          console.error('Deploy error:', deployStderr);
+          return res.status(500).json({ error: `Deploy failed: ${deployStderr}` });
+        }
+        console.log('Deploy succeeded:', deployStdout);
+
+        // Extract program ID from generated keypair file
+        const programKeypairPath = path.resolve(projectPath, 'target', 'deploy', `${projectName}-keypair.json`);
+        console.log("the programKeypairPath is", programKeypairPath);
+
+        const deployDir = path.join(projectPath, 'target', 'deploy');
+
+// Search for any `*-keypair.json` file inside target/deploy
+const keypairFiles = glob.sync(path.join(deployDir, '*-keypair.json'));
+
+        if (keypairFiles.length > 0) {
+          const programKeypairPath = keypairFiles[0]; // take the first matching file
+          console.log("Program keypair JSON found at:", programKeypairPath);
+        
+          const keypairData = JSON.parse(fs.readFileSync(programKeypairPath, 'utf8'));
+          const secretKey = Uint8Array.from(keypairData);
+          const keypair = solanaWeb3.Keypair.fromSecretKey(secretKey);
+          const programId = keypair.publicKey.toBase58();
+        
+          console.log("The program ID is", programId);
+        
+          res.json({
+            message: 'Program deployed successfully',
+            programId,
+            buildOutput: buildStdout,
+            deployOutput: deployStdout,
+          });
+        } else {
+          console.log("No program keypair JSON file found inside:", deployDir);
+          res.json({
+            message: 'Program deployed successfully, but program keypair JSON not found',
+            programId: 'Unknown',
+            buildOutput: buildStdout,
+            deployOutput: deployStdout,
+          });
+        }
+        
+      });
+    });
+  } catch (err) {
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);

@@ -1,0 +1,12 @@
+[programs.devnet]
+project_1747466501304 = "9nKXZsbyNmcZhnDWTVHgZwvtnmjCLuFPXKvHmEz3FvZR"
+
+
+[registry]
+url = "https://api.devnet.solana.com"
+
+[provider]
+cluster = "devnet"
+wallet = "/home/bhulakshmi-ravuri/solana-deployer/backend/backend/uploads/project_1747466869964/auth-keypair.json"
+
+[scripts]

@@ -1,0 +1,11 @@
+[programs.devnet]
+
+
+[registry]
+url = "https://api.devnet.solana.com"
+
+[provider]
+cluster = "devnet"
+wallet = "/home/bhulakshmi-ravuri/solana-deployer/backend/backend/uploads/project_1747467407689/auth-keypair.json"
+
+[scripts]

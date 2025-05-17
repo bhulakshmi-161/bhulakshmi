@@ -1,1 +1,0 @@
-/home/bhulakshmi-ravuri/solana-deployer/backend/backend/uploads/project_1747380788550/programs/project_1747380788550/target/sbf-solana-solana/release/libproject_1747380788550.rlib: /home/bhulakshmi-ravuri/solana-deployer/backend/backend/uploads/project_1747380788550/programs/project_1747380788550/src/lib.rs
