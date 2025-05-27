@@ -80,7 +80,7 @@ const rawData = fs.readFileSync("watchlist.json");
 const watchlist = new Set(JSON.parse(rawData).addresses.map(addr => addr.toLowerCase()));
 
 // Your notification API endpoint (replace with your real API URL)
-const NOTIFICATION_API_URL = "https://your-api.example.com/notify"; // here we can write the notification api 
+const NOTIFICATION_API_URL = "http://localhost:5000/notify"; // here we can write the notification api 
 
 
 async function sendNotification(details) {
